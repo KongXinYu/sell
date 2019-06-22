@@ -31,6 +31,24 @@
       <div class="rating">
         <h1 class="title">商品评价</h1>
         <ratingselect :select-type="selectType" :only-content="onlyContent" :desc="desc" :ratings="food.ratings"></ratingselect>
+        <div class="rating-wrapper">
+          <ul v-show="food.ratings && food.ratings.length">
+            <li v-show="needShow(rating.rateType, rating.text)" v-for="rating in food.ratings" class="rating-item">
+              <div class="user">
+                <span class="name">{{rating.name}}</span>
+                <img :src="rating.avatar" alt="" class="avatar" width="12" height="12">
+              </div>
+              <div class="time">{{rating.rateTime | fromatDate}}</div>
+              <p class="text">
+                <span :class="{'icon-thumb_up':rating.rateType==0,'icon-thumb_down':rating.rateType===1}"></span>{{rating.text}}
+              </p>
+            </li>
+          </ul>
+            <div class="no-rating" v-show="!food.ratings || !food.ratings.length">
+              暂无评价
+            </div>
+
+        </div>
       </div>
     </div>
 
@@ -43,9 +61,8 @@
   import cartcontrol from 'components/cartcontrol/cartcontrol';
   import split from 'components/split/split';
   import ratingselect from 'components/ratingselect/ratingselect';
+  import {fromatDate} from 'common/js/date';
 
-  // const POSITIVE = 0;
-  // const NEGATIVE = 1;
   const ALL = 2;
 
   export default {
@@ -90,6 +107,36 @@
         }
         this.$dispatch('cart.add', event.target);
         Vue.set(this.food, 'count', 1);
+      },
+      needShow(type, text) {
+        if (this.onlyContent && !text) {
+          return false;
+        }
+        if (this.selectType === ALL) {
+          return true;
+        } else {
+          return type === this.selectType;
+        }
+      }
+    },
+    events: {
+      'ratingtype.select'(type) {
+        this.selectType = type;
+        this.$nextTick(() => {
+          this.scrollf.refresh();
+        });
+      },
+      'content.toggle'(onlyContent) {
+        this.onlyContent = onlyContent;
+        this.$nextTick(() => {
+          this.scrollf.refresh();
+        });
+      }
+    },
+    filters: {
+      fromatDate(time) {
+        let date = new Date(time);
+        return fromatDate(date, 'yyyy-MM-dd hh:mm:ss');
       }
     },
     components: {
